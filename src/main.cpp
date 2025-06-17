@@ -113,10 +113,12 @@ void loop() {
       if (alarmActive) {  // Alarm aktifse pasife çevir ve uyku moduna geç
         alarmActive = false;
         alarmSounding = false;  // Alarmı durdur
+        digitalWrite(ledPin, LOW);  // LED'i söndür
         Serial.println("Alarm Pasif - Uyku Moduna Geçiliyor...");
         enterSleep();
       } else {  // Alarm pasifse aktif et
         alarmActive = true;
+        digitalWrite(ledPin, HIGH);  // LED'i yak
         Serial.println("Alarm AKTIF!");
       }
       delay(300); // Butonun tekrar basılmasını önle
@@ -132,9 +134,6 @@ void loop() {
     return;
   }
   
-  // Alarm aktifse LED'i yak
-  digitalWrite(ledPin, HIGH);
-  
   // Mesafe kontrolü ve alarm sesi
   if (distance < 60) {  // Mesafe 60cm'den az ise
     if (!alarmSounding) {
@@ -142,21 +141,15 @@ void loop() {
       alarmSounding = true;
     }
     
-    // LED yanıp sönsün
-    if (currentTime - previousLedTime >= 100) {
-      previousLedTime = currentTime;
-      ledState = !ledState;
-      digitalWrite(ledPin, ledState);
-    }
-    
     // Alarm süresi kontrolü
     if (currentTime - alarmStartTime < alarmDuration) {
-      // Alarm sesi
+      // Alarm sesi ve LED
       if (currentTime - previousAlarmTime >= 200) {
         previousAlarmTime = currentTime;
         
         tone(buzzerPin1, alarmTones[alarmState]);
         digitalWrite(buzzerPin2, alarmState % 2 == 0 ? HIGH : LOW);
+        digitalWrite(ledPin, alarmState % 2 == 0 ? HIGH : LOW);  // LED'i alarm ile senkronize et
         
         alarmState = (alarmState + 1) % toneCount;
       }
@@ -168,6 +161,7 @@ void loop() {
       alarmSounding = false;
       noTone(buzzerPin1);
       digitalWrite(buzzerPin2, LOW);
+      digitalWrite(ledPin, HIGH);  // Alarm bittiğinde LED'i yak
       alarmState = 0;
     }
   } else {
@@ -178,6 +172,7 @@ void loop() {
         
         tone(buzzerPin1, alarmTones[alarmState]);
         digitalWrite(buzzerPin2, alarmState % 2 == 0 ? HIGH : LOW);
+        digitalWrite(ledPin, alarmState % 2 == 0 ? HIGH : LOW);  // LED'i alarm ile senkronize et
         
         alarmState = (alarmState + 1) % toneCount;
       }
@@ -185,6 +180,7 @@ void loop() {
       alarmSounding = false;
       noTone(buzzerPin1);
       digitalWrite(buzzerPin2, LOW);
+      digitalWrite(ledPin, HIGH);  // Alarm bittiğinde LED'i yak
       alarmState = 0;
     }
     Serial.print("Mesafe: ");
