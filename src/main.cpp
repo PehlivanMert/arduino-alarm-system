@@ -23,15 +23,6 @@ int lastButtonState = HIGH;  // Butonun son durumu
 unsigned long lastDebounceTime = 0;  // Son debounce zamanı
 const unsigned long debounceDelay = 50;  // Debounce süresi
 
-// Kesme (interrupt) fonksiyonu
-void wakeUp() {
-  // Kesme geldiğinde yapılacak işlemler
-  sleep_disable();  // Uyku modunu devre dışı bırak
-  detachInterrupt(digitalPinToInterrupt(buttonPin));  // Kesmeyi devre dışı bırak
-  alarmActive = true;  // Alarmı aktif et
-  Serial.println("Uyandı - Alarm Aktif!");
-}
-
 void setup() {
   // LED pinini çıkış olarak ayarla
   pinMode(ledPin, OUTPUT);
@@ -80,15 +71,25 @@ void enterSleep() {
   digitalWrite(buzzerPin2, LOW);
   noTone(buzzerPin1);
   
-  // Uyku modunu ayarla
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  // Düşük güç tüketimli uyku modu
+  set_sleep_mode(SLEEP_MODE_IDLE);
   sleep_enable();
   
-  // Buton kesmesini ayarla
-  attachInterrupt(digitalPinToInterrupt(buttonPin), wakeUp, FALLING);
+  while (!alarmActive) {
+    sleep_mode();  // Uyku moduna geç
+    
+    // Buton durumunu kontrol et
+    if (digitalRead(buttonPin) == LOW) {
+      delay(50);  // Debounce için kısa bekleme
+      if (digitalRead(buttonPin) == LOW) {
+        alarmActive = true;
+        Serial.println("Uyandı - Alarm Aktif!");
+        delay(300);  // Butonun tekrar basılmasını önle
+      }
+    }
+  }
   
-  // Uyku moduna geç
-  sleep_mode();
+  sleep_disable();  // Uyku modunu devre dışı bırak
 }
 
 void loop() {
@@ -127,7 +128,7 @@ void loop() {
   digitalWrite(ledPin, HIGH);
   
   // Mesafe kontrolü ve alarm sesi
-  if (distance < 10) {  // Mesafe 10cm'den az ise
+  if (distance < 60) {  // Mesafe 60cm'den az ise
     // LED yanıp sönsün
     if (currentTime - previousLedTime >= 100) {
       previousLedTime = currentTime;

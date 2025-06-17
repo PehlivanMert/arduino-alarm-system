@@ -1,73 +1,126 @@
-# Mesafe Sensörlü LED Kontrol Projesi
+# Arduino Alarm Sistemi
 
-Bu proje, HC-SR04 mesafe sensörü kullanarak LED'lerin parlaklığını mesafeye göre kontrol eden bir Arduino uygulamasıdır.
+Bu proje, Arduino tabanlı bir hareket algılama ve alarm sistemidir. HC-SR04 ultrasonik mesafe sensörü kullanarak yakındaki hareketleri algılar ve alarm durumunda sesli ve görsel uyarılar verir.
 
-## Donanım Gereksinimleri
+## 🎯 Projenin Amacı
 
-- Arduino Uno
+Bu alarm sistemi, aşağıdaki durumlarda kullanılmak üzere tasarlanmıştır:
+- Ev ve işyeri güvenliği
+- Değerli eşyaların korunması
+- Kapı ve pencere güvenliği
+- Hareket algılama gerektiren diğer güvenlik uygulamaları
+
+## 💡 Özellikler
+
+- Ultrasonik mesafe sensörü ile hassas hareket algılama
+- Çift buzzer sistemi (pasif ve aktif) ile yüksek sesli uyarı
+- LED ile görsel uyarı
+- Düşük güç tüketimli uyku modu
+- Tek buton ile kolay kontrol
+- Serial monitör üzerinden durum takibi
+
+## 🛠️ Donanım Gereksinimleri
+
+- Arduino Uno/Nano
 - HC-SR04 Ultrasonik Mesafe Sensörü
-- 6 adet LED
-- 6 adet 220 ohm direnç
+- 2x Buzzer (1x Pasif, 1x Aktif)
+- 1x LED
+- 1x Buton
+- 1x 220Ω Direnç (LED için)
+- 1x 10kΩ Direnç (Buton için)
+- Bağlantı kabloları
 - Breadboard
-- Jumper kablolar
 
-## HC-SR04 Sensör Özellikleri
+## 📋 Bağlantı Şeması
 
-- Çalışma voltajı: 5V DC
-- Çalışma akımı: 15mA
-- Ölçüm açısı: 15 derece
-- Ölçüm aralığı: 2cm - 400cm
-- Ölçüm hassasiyeti: 0.3cm
-- Ölçüm sıklığı: 40Hz (25ms)
-- Tetikleme sinyali: 10μS TTL pulse
-- Echo sinyali: TTL level signal, time proportional to distance
+```
+Arduino Pinleri:
+- Pin 2  -> Buton (GND'ye 10kΩ pull-down direnci ile)
+- Pin 3  -> Pasif Buzzer
+- Pin 4  -> Aktif Buzzer
+- Pin 7  -> LED (220Ω direnç ile)
+- Pin 9  -> HC-SR04 TRIG
+- Pin 10 -> HC-SR04 ECHO
+- 5V     -> HC-SR04 VCC
+- GND    -> HC-SR04 GND, Buton, LED, Buzzerlar
+```
 
-## Bağlantılar
+## ⚙️ Teknik Özellikler
 
-### HC-SR04 Sensör Bağlantıları
-- VCC -> Arduino 5V
-- TRIG -> Arduino pin 9
-- ECHO -> Arduino pin 10
-- GND -> Arduino GND
+- Algılama mesafesi: 60cm
+- Alarm süresi: 10 saniye (kesintisiz)
+- Uyku modu: SLEEP_MODE_IDLE
+- Buton debounce süresi: 50ms
+- LED yanıp sönme sıklığı: 100ms
+- Alarm sesi değişim sıklığı: 200ms
+- Serial haberleşme hızı: 9600 baud
 
-### LED Bağlantıları
-- LED 1 -> Arduino pin 8 (220 ohm direnç ile)
-- LED 2 -> Arduino pin 7 (220 ohm direnç ile)
-- LED 3 -> Arduino pin 6 (220 ohm direnç ile)
-- LED 4 -> Arduino pin 4 (220 ohm direnç ile)
-- LED 5 -> Arduino pin 3 (220 ohm direnç ile)
-- LED 6 -> Arduino pin 2 (220 ohm direnç ile)
+## 🔄 Çalışma Prensibi
 
-## Çalışma Prensibi
+1. **Başlangıç Durumu:**
+   - Sistem ilk açıldığında alarm pasif durumda başlar
+   - LED sönük durumda
+   - Buzzerlar kapalı
 
-Proje, mesafe sensöründen gelen veriye göre LED'lerin parlaklığını kademeli olarak kontrol eder:
+2. **Alarm Aktifleştirme:**
+   - Butona basıldığında alarm aktif olur
+   - LED sürekli yanar
+   - Sistem mesafe ölçümüne başlar
 
-- Mesafe 5 cm'de: Maksimum parlaklık (255)
-- Mesafe 10 cm'de: %80 parlaklık (204)
-- Mesafe 15 cm'de: %60 parlaklık (153)
-- Mesafe 20 cm'de: %40 parlaklık (102)
-- Mesafe 25 cm'de: %20 parlaklık (51)
-- Mesafe 30 cm ve üzeri: LED'ler sönük (0)
+3. **Alarm Durumu:**
+   - Mesafe 60cm'den az olduğunda:
+     - Alarm tetiklenir
+     - LED yanıp söner
+     - Buzzerlar 10 saniye boyunca kesintisiz çalar
+     - Serial monitörde uyarı mesajı görüntülenir
+   - 10 saniye sonra alarm otomatik olarak durur
+   - Yeni bir nesne algılanana kadar alarm çalmaz
 
-## Özellikler
+4. **Uyku Modu:**
+   - Alarm aktifken butona basıldığında:
+     - Alarm pasif olur
+     - Sistem uyku moduna geçer
+     - Tüm çıkışlar kapanır
+   - Uyku modundan çıkış:
+     - Butona basıldığında sistem uyanır
+     - Alarm tekrar aktif olur
 
-- Mesafe ölçümü: 5 cm - 45 cm arası
-- LED parlaklığı: Mesafeye göre 0-255 arası değişken
-- Ölçüm sıklığı: 100ms
-- Serial monitörde mesafe ve parlaklık değeri gösterimi
+## 💪 Faydaları
 
-## Kurulum
+1. **Güvenlik:**
+   - Hassas hareket algılama
+   - Anında uyarı sistemi
+   - Görsel ve sesli bildirimler
 
-1. Arduino IDE'yi açın
-2. Kodu yükleyin
-3. Bağlantıları yapın
-4. Serial monitörü açın (9600 baud)
-5. Kodu Arduino'ya yükleyin
+2. **Enerji Verimliliği:**
+   - Düşük güç tüketimli uyku modu
+   - Akıllı güç yönetimi
+   - Uzun pil ömrü
 
-## Notlar
+3. **Kullanım Kolaylığı:**
+   - Tek buton kontrolü
+   - Basit kurulum
+   - Kolay bakım
 
-- LED'ler tersten bağlanmıştır (8'den 2'ye doğru)
-- Mesafe ölçümü için ses hızı (340 m/s) kullanılmaktadır
-- Sensörün ölçüm hassasiyeti 0.3cm'dir
-- Sensörün önünde engel olmamasına dikkat edin
-- Ölçüm sırasında sensörün sabit durması önemlidir 
+4. **Özelleştirilebilirlik:**
+   - Mesafe hassasiyeti ayarlanabilir
+   - Ses ve ışık modları değiştirilebilir
+   - Farklı sensörler eklenebilir
+
+
+## ⚠️ Dikkat Edilmesi Gerekenler
+
+1. **Kurulum:**
+   - Bağlantıları doğru yapın
+   - Dirençleri unutmayın
+   - Güç kaynağını kontrol edin
+
+2. **Kullanım:**
+   - Mesafe sensörünü temiz tutun
+   - Butonun düzgün çalıştığından emin olun
+   - Serial monitörü kontrol edin
+
+3. **Bakım:**
+   - Düzenli sensör temizliği
+   - Bağlantı kontrolü
+   - Pil durumu takibi
