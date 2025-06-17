@@ -16,12 +16,19 @@ const int echoPin = 10;
 // Alarm değişkenleri
 unsigned long previousAlarmTime = 0;
 unsigned long previousLedTime = 0;
+unsigned long alarmStartTime = 0;  // Alarm başlangıç zamanı
 int alarmState = 0;
 int ledState = 0;
 bool alarmActive = false;  // Alarm durumu
+bool alarmSounding = false;  // Alarm çalma durumu
 int lastButtonState = HIGH;  // Butonun son durumu
 unsigned long lastDebounceTime = 0;  // Son debounce zamanı
 const unsigned long debounceDelay = 50;  // Debounce süresi
+const unsigned long alarmDuration = 10000;  // Alarm süresi (10 saniye)
+
+// Alarm tonları
+const int alarmTones[] = {2000, 1500, 1000, 1500};  // Daha melodik tonlar
+const int toneCount = sizeof(alarmTones) / sizeof(alarmTones[0]);
 
 void setup() {
   // LED pinini çıkış olarak ayarla
@@ -105,6 +112,7 @@ void loop() {
     if (digitalRead(buttonPin) == LOW) { // Buton hala basılı mı kontrol et
       if (alarmActive) {  // Alarm aktifse pasife çevir ve uyku moduna geç
         alarmActive = false;
+        alarmSounding = false;  // Alarmı durdur
         Serial.println("Alarm Pasif - Uyku Moduna Geçiliyor...");
         enterSleep();
       } else {  // Alarm pasifse aktif et
@@ -129,6 +137,11 @@ void loop() {
   
   // Mesafe kontrolü ve alarm sesi
   if (distance < 60) {  // Mesafe 60cm'den az ise
+    if (!alarmSounding) {
+      alarmStartTime = currentTime;  // Alarm başlangıç zamanını kaydet
+      alarmSounding = true;
+    }
+    
     // LED yanıp sönsün
     if (currentTime - previousLedTime >= 100) {
       previousLedTime = currentTime;
@@ -136,28 +149,44 @@ void loop() {
       digitalWrite(ledPin, ledState);
     }
     
-    // Alarm sesi
-    if (currentTime - previousAlarmTime >= 200) {
-      previousAlarmTime = currentTime;
-      
-      if (alarmState == 0) {
-        tone(buzzerPin1, 2000);  // Yüksek ses
-        digitalWrite(buzzerPin2, HIGH);
-        alarmState = 1;
-      } else {
-        tone(buzzerPin1, 1000);  // Düşük ses
-        digitalWrite(buzzerPin2, LOW);
-        alarmState = 0;
+    // Alarm süresi kontrolü
+    if (currentTime - alarmStartTime < alarmDuration) {
+      // Alarm sesi
+      if (currentTime - previousAlarmTime >= 200) {
+        previousAlarmTime = currentTime;
+        
+        tone(buzzerPin1, alarmTones[alarmState]);
+        digitalWrite(buzzerPin2, alarmState % 2 == 0 ? HIGH : LOW);
+        
+        alarmState = (alarmState + 1) % toneCount;
       }
+      
+      Serial.print("Mesafe: ");
+      Serial.print(distance);
+      Serial.println(" cm - ALARM!");
+    } else {
+      alarmSounding = false;
+      noTone(buzzerPin1);
+      digitalWrite(buzzerPin2, LOW);
+      alarmState = 0;
     }
-    
-    Serial.print("Mesafe: ");
-    Serial.print(distance);
-    Serial.println(" cm - ALARM!");
   } else {
-    noTone(buzzerPin1);
-    digitalWrite(buzzerPin2, LOW);
-    alarmState = 0;
+    if (alarmSounding && currentTime - alarmStartTime < alarmDuration) {
+      // Alarm süresi dolmamışsa çalmaya devam et
+      if (currentTime - previousAlarmTime >= 200) {
+        previousAlarmTime = currentTime;
+        
+        tone(buzzerPin1, alarmTones[alarmState]);
+        digitalWrite(buzzerPin2, alarmState % 2 == 0 ? HIGH : LOW);
+        
+        alarmState = (alarmState + 1) % toneCount;
+      }
+    } else {
+      alarmSounding = false;
+      noTone(buzzerPin1);
+      digitalWrite(buzzerPin2, LOW);
+      alarmState = 0;
+    }
     Serial.print("Mesafe: ");
     Serial.print(distance);
     Serial.println(" cm - Alarm Aktif");
