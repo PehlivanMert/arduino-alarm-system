@@ -1,126 +1,115 @@
-# Arduino Alarm Sistemi
+# Ultrasonik Mesafe Sensörlü Alarm Sistemi
 
-Bu proje, Arduino tabanlı bir hareket algılama ve alarm sistemidir. HC-SR04 ultrasonik mesafe sensörü kullanarak yakındaki hareketleri algılar ve alarm durumunda sesli ve görsel uyarılar verir.
+Bu proje, HC-SR04 ultrasonik mesafe sensörü kullanarak bir alarm sistemi oluşturur. Sistem, belirli bir mesafenin altında bir nesne algıladığında alarm çalar ve LED uyarısı verir.
 
-## 🎯 Projenin Amacı
+## Özellikler
 
-Bu alarm sistemi, aşağıdaki durumlarda kullanılmak üzere tasarlanmıştır:
-- Ev ve işyeri güvenliği
-- Değerli eşyaların korunması
-- Kapı ve pencere güvenliği
-- Hareket algılama gerektiren diğer güvenlik uygulamaları
-
-## 💡 Özellikler
-
-- Ultrasonik mesafe sensörü ile hassas hareket algılama
-- Çift buzzer sistemi (pasif ve aktif) ile yüksek sesli uyarı
-- LED ile görsel uyarı
+- HC-SR04 ultrasonik mesafe sensörü ile mesafe ölçümü
+- 60 cm mesafe eşiği
+- 10 saniye süren alarm
+- Melodik alarm tonları (2000Hz, 1500Hz, 1000Hz, 1500Hz)
+- Çift buzzer sistemi (pasif ve aktif)
+- LED durum göstergesi
 - Düşük güç tüketimli uyku modu
-- Tek buton ile kolay kontrol
-- Serial monitör üzerinden durum takibi
+- Buton ile alarm kontrolü
+- Uzun batarya ömrü
 
-## 🛠️ Donanım Gereksinimleri
+## Donanım Gereksinimleri
 
-- Arduino Uno/Nano
+- Arduino (Uno, Nano veya benzeri)
 - HC-SR04 Ultrasonik Mesafe Sensörü
-- 2x Buzzer (1x Pasif, 1x Aktif)
-- 1x LED
-- 1x Buton
-- 1x 220Ω Direnç (LED için)
-- 1x 10kΩ Direnç (Buton için)
+- 2 adet Buzzer (1 pasif, 1 aktif)
+- LED
+- Buton
 - Bağlantı kabloları
-- Breadboard
+- Breadboard (isteğe bağlı)
+- Batarya (önerilen: 10000mAh Li-ion)
 
-## 📋 Bağlantı Şeması
+## Bağlantılar
 
-```
-Arduino Pinleri:
-- Pin 2  -> Buton (GND'ye 10kΩ pull-down direnci ile)
-- Pin 3  -> Pasif Buzzer
-- Pin 4  -> Aktif Buzzer
-- Pin 7  -> LED (220Ω direnç ile)
-- Pin 9  -> HC-SR04 TRIG
-- Pin 10 -> HC-SR04 ECHO
-- 5V     -> HC-SR04 VCC
-- GND    -> HC-SR04 GND, Buton, LED, Buzzerlar
-```
+### HC-SR04 Sensör
+- VCC -> Arduino 5V
+- GND -> Arduino GND
+- TRIG -> Arduino Pin 9
+- ECHO -> Arduino Pin 10
 
-## ⚙️ Teknik Özellikler
+### Buzzerlar
+- Pasif Buzzer -> Arduino Pin 3
+- Aktif Buzzer -> Arduino Pin 4
 
-- Algılama mesafesi: 60cm
-- Alarm süresi: 10 saniye (kesintisiz)
-- Uyku modu: SLEEP_MODE_IDLE
-- Buton debounce süresi: 50ms
-- LED yanıp sönme sıklığı: 100ms
-- Alarm sesi değişim sıklığı: 200ms
-- Serial haberleşme hızı: 9600 baud
+### LED
+- Anot (+) -> Arduino Pin 7
+- Katot (-) -> 220Ω direnç -> Arduino GND
 
-## 🔄 Çalışma Prensibi
+### Buton
+- Bir ucu -> Arduino Pin 2
+- Diğer ucu -> Arduino GND
 
-1. **Başlangıç Durumu:**
-   - Sistem ilk açıldığında alarm pasif durumda başlar
+## Çalışma Prensibi
+
+1. **Uyku Modu**
+   - Sistem başlangıçta uyku modundadır
    - LED sönük durumda
-   - Buzzerlar kapalı
+   - Düşük güç tüketimi
 
-2. **Alarm Aktifleştirme:**
-   - Butona basıldığında alarm aktif olur
-   - LED sürekli yanar
-   - Sistem mesafe ölçümüne başlar
+2. **Aktif Mod**
+   - Butona basıldığında sistem aktif olur
+   - LED sürekli yanık durumda
+   - Mesafe sürekli ölçülür
 
-3. **Alarm Durumu:**
-   - Mesafe 60cm'den az olduğunda:
-     - Alarm tetiklenir
-     - LED yanıp söner
-     - Buzzerlar 10 saniye boyunca kesintisiz çalar
-     - Serial monitörde uyarı mesajı görüntülenir
-   - 10 saniye sonra alarm otomatik olarak durur
-   - Yeni bir nesne algılanana kadar alarm çalmaz
+3. **Alarm Durumu**
+   - 60 cm'den yakın mesafede nesne algılandığında:
+     - Alarm 10 saniye boyunca çalar
+     - LED alarm ile senkronize yanıp söner
+     - Melodik tonlar sırayla çalınır
+   - Nesne uzaklaşsa bile alarm süresi dolana kadar çalmaya devam eder
+   - Alarm süresi bittiğinde LED tekrar sürekli yanık duruma geçer
 
-4. **Uyku Modu:**
-   - Alarm aktifken butona basıldığında:
-     - Alarm pasif olur
-     - Sistem uyku moduna geçer
-     - Tüm çıkışlar kapanır
-   - Uyku modundan çıkış:
-     - Butona basıldığında sistem uyanır
-     - Alarm tekrar aktif olur
+4. **Kontrol**
+   - Buton ile alarm aktif/pasif yapılabilir
+   - Pasif modda sistem uyku moduna geçer
 
-## 💪 Faydaları
+## Güç Tüketimi ve Batarya Ömrü
 
-1. **Güvenlik:**
-   - Hassas hareket algılama
-   - Anında uyarı sistemi
-   - Görsel ve sesli bildirimler
+### Güç Tüketimi
+- Uyku modunda: ~0.1mA
+- Aktif modda: ~20mA
+- Alarm çalarken: ~50mA
 
-2. **Enerji Verimliliği:**
-   - Düşük güç tüketimli uyku modu
-   - Akıllı güç yönetimi
-   - Uzun pil ömrü
+### Batarya Ömrü Hesaplaması (10000mAh Batarya ile)
+1. **Günlük Tüketim (12 saat aktif + 12 saat uyku)**
+   - Aktif mod: 20mA × 12 saat = 240mAh
+   - Uyku modu: 0.1mA × 12 saat = 1.2mAh
+   - Toplam günlük tüketim: 241.2mAh/gün
 
-3. **Kullanım Kolaylığı:**
-   - Tek buton kontrolü
-   - Basit kurulum
-   - Kolay bakım
+2. **Çalışma Süresi**
+   - 10000mAh ÷ 241.2mAh/gün = 41.46 gün
+   - Yaklaşık 41-42 gün kesintisiz çalışma
 
-4. **Özelleştirilebilirlik:**
-   - Mesafe hassasiyeti ayarlanabilir
-   - Ses ve ışık modları değiştirilebilir
-   - Farklı sensörler eklenebilir
+### Notlar
+- Hesaplanan süre alarm çalma durumlarını içermez
+- Gerçek kullanımda süre şu faktörlere bağlı olarak değişebilir:
+  - Alarm çalma sıklığı ve süresi
+  - Bataryanın yaşlanması
+  - Ortam sıcaklığı
+  - Batarya verimliliği
 
+## Notlar
 
-## ⚠️ Dikkat Edilmesi Gerekenler
+- Mesafe ölçümü 2-400 cm arasında yapılabilir
+- Alarm tonları 200ms aralıklarla değişir
+- Sistem 50ms'de bir mesafe kontrolü yapar
+- Buton debounce süresi 50ms'dir
 
-1. **Kurulum:**
-   - Bağlantıları doğru yapın
-   - Dirençleri unutmayın
-   - Güç kaynağını kontrol edin
+## Geliştirme
 
-2. **Kullanım:**
-   - Mesafe sensörünü temiz tutun
-   - Butonun düzgün çalıştığından emin olun
-   - Serial monitörü kontrol edin
-
-3. **Bakım:**
-   - Düzenli sensör temizliği
-   - Bağlantı kontrolü
-   - Pil durumu takibi
+Projeyi geliştirmek için yapılabilecekler:
+- Farklı alarm tonları eklenebilir
+- Alarm süresi değiştirilebilir
+- Mesafe eşiği ayarlanabilir
+- Farklı LED efektleri eklenebilir
+- Güç tüketimi daha da optimize edilebilir
+- Batarya ömrünü uzatmak için:
+  - Uyku modu süresini artırabilirsiniz
+  - Daha büyük kapasiteli batarya kullanabilirsiniz
+  - Güç tüketimini optimize edebilirsiniz
